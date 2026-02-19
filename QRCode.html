@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini QR Generator</title>
+<style>
+  body { font-family: Arial; background:#eef2f7; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+  .box { background:#fff; padding:15px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); text-align:center; width:320px; }
+  textarea, input, select { width:100%; padding:6px; margin:6px 0; border-radius:5px; border:1px solid #ccc; font-size:14px; }
+  button { padding:8px 12px; margin:6px 4px; border:none; border-radius:5px; font-weight:600; cursor:pointer; }
+  .btn-gen { background:#007bff; color:#fff; }
+  .btn-down { background:#00b894; color:#fff; }
+  .btn-reset { background:#ccc; color:#000; }
+  canvas { margin-top:10px; border:1px solid #ccc; border-radius:6px; background:#fff; }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h3>QR Code Generator</h3>
+  <textarea id="text" rows="2" placeholder="Enter text or URL"></textarea>
+  <input type="number" id="size" value="200" min="100" max="600" title="Size (px)">
+  <input type="color" id="fgColor" value="#000000" title="Foreground">
+  <input type="color" id="bgColor" value="#ffffff" title="Background">
+  <select id="error">
+    <option value="L">L - Low</option>
+    <option value="M" selected>M - Medium</option>
+    <option value="Q">Q - Quartile</option>
+    <option value="H">H - High</option>
+  </select><br>
+  <button class="btn-gen" id="generateBtn">Generate</button>
+  <button class="btn-down" id="downloadBtn">Download</button>
+  <button class="btn-reset" id="resetBtn">Reset</button>
+  <canvas id="qrCanvas" width="200" height="200"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+<script>
+const textEl = document.getElementById('text');
+const sizeEl = document.getElementById('size');
+const fgColorEl = document.getElementById('fgColor');
+const bgColorEl = document.getElementById('bgColor');
+const errorEl = document.getElementById('error');
+const canvas = document.getElementById('qrCanvas');
+
+let qr = new QRious({
+  element: canvas,
+  value: '',
+  size: parseInt(sizeEl.value),
+  background: bgColorEl.value,
+  foreground: fgColorEl.value,
+  level: errorEl.value
+});
+
+document.getElementById('generateBtn').onclick = () => {
+  const val = textEl.value.trim();
+  if(!val){ alert('Enter text or URL'); return; }
+  const s = parseInt(sizeEl.value);
+  canvas.width = s; canvas.height = s;
+  qr.set({ value: val, size:s, background:bgColorEl.value, foreground:fgColorEl.value, level:errorEl.value });
+};
+
+document.getElementById('downloadBtn').onclick = () => {
+  if(!qr.value){ alert('Generate QR first'); return; }
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'qr_code.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+
+document.getElementById('resetBtn').onclick = () => {
+  textEl.value=''; sizeEl.value=200; fgColorEl.value='#000000'; bgColorEl.value='#ffffff'; errorEl.value='M';
+  qr.set({ value:'', size:200, background:'#ffffff', foreground:'#000000', level:'M' });
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+};
+</script>
+</body>
+</html>
